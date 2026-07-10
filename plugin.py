@@ -71,6 +71,7 @@ class DayNightGateModule:
 
 class DayNightGatePlugin(Plugin):
     name = "daynight_gate"
+    version = "1.0.0"
     ConfigModel = DayNightGateConfig
 
     async def initialize(self) -> None:
