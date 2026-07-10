@@ -34,7 +34,11 @@ class DayNightGateConfig(BaseModel):
 
 class DayNightGateModule:
     slot = "proactive.gate.daynight"
-    phase = "proactive.gate"
+    produces = (
+        "proactive:gate:pass_probability",
+        "proactive:gate:reason",
+        "proactive:effect:daynight_gate",
+    )
 
     def __init__(self, config: DayNightGateConfig) -> None:
         self._config = config
