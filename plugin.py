@@ -70,15 +70,10 @@ class DayNightGateModule:
 
 
 class DayNightGatePlugin(Plugin):
+    api_version = 2
     name = "daynight_gate"
     version = "1.0.0"
     ConfigModel = DayNightGateConfig
-
-    async def initialize(self) -> None:
-        return None
-
-    async def terminate(self) -> None:
-        return None
 
     def proactive_modules(self) -> list[object]:
         config = self.context.config

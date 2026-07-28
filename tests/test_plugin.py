@@ -52,7 +52,7 @@ async def test_daynight_gate_loads_config_from_plugin_manager(tmp_path: Path) ->
         ignore=shutil.ignore_patterns(".git", "tests", "__pycache__"),
     )
     plugins_home = tmp_path / ".akashic-plugin"
-    data_dir = plugins_home / "data" / "daynight_gate-builtin"
+    data_dir = tmp_path / "plugin-data/daynight_gate-builtin"
     data_dir.mkdir(parents=True)
     (data_dir / "config.local.toml").write_text(
         'start = "22:00"\nend = "23:00"\npass_probability = 0.33\nreason = "late_quiet"\n',
