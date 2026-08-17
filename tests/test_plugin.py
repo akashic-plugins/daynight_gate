@@ -112,3 +112,11 @@ def test_static_manifest_matches_pure_v3_module() -> None:
     assert manifest.version == "3.0.0"
     assert manifest.api_version == 3
     assert manifest.entrypoint == "plugin.py"
+
+
+def test_production_uses_c15_module_port_without_legacy_frame_import() -> None:
+    source = (Path(__file__).parents[1] / "plugin.py").read_text(encoding="utf-8")
+
+    assert "proactive_v2.frame" not in source
+    assert "ProactiveModuleContext" in source
+    assert "ProactiveModuleOutcome" in source

@@ -8,7 +8,10 @@ from agent.plugin_composition import (
     Context,
     ProactiveModuleDefinition,
 )
-from proactive_v2.frame import ProactiveFrame
+from agent.plugins.generation_proactive_host import (
+    ProactiveModuleContext,
+    ProactiveModuleOutcome,
+)
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -50,7 +53,7 @@ class DayNightGateModule:
         self._start = _parse_hhmm(config.start)
         self._end = _parse_hhmm(config.end)
 
-    async def run(self, frame: ProactiveFrame) -> ProactiveFrame:
+    async def run(self, frame: ProactiveModuleOutcome) -> ProactiveModuleOutcome:
         if not self._config.enabled:
             return frame
         local_now = frame.input.started_at.astimezone(self._zone)
@@ -99,7 +102,10 @@ async def apply(ctx: Context, config: object) -> None:
     )
 
 
-async def run_daynight_gate(_ctx: object, frame: ProactiveFrame) -> ProactiveFrame:
+async def run_daynight_gate(
+    _ctx: ProactiveModuleContext,
+    frame: ProactiveModuleOutcome,
+) -> ProactiveModuleOutcome:
     """在 exact generation handler 中执行纯内存时间窗判断。"""
 
     module = _runtime_module
