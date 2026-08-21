@@ -50,7 +50,7 @@ async def test_daynight_gate_loads_config_from_plugin_manager(tmp_path: Path) ->
     shutil.copytree(
         Path(__file__).parents[1],
         plugin_root / "daynight_gate",
-        ignore=shutil.ignore_patterns(".git", "tests", "__pycache__"),
+        ignore=shutil.ignore_patterns(".git", ".akashic-core", "tests", "__pycache__"),
     )
     plugins_home = tmp_path / ".akashic-plugin"
     data_dir = tmp_path / "plugin-data/daynight_gate-builtin"
