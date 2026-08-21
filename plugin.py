@@ -3,8 +3,15 @@ from __future__ import annotations
 from datetime import time
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from agent.plugins import Plugin
-from proactive_v2.frame import ProactiveFrame
+from agent.plugin_composition import (
+    PROACTIVE_COMPONENTS,
+    Context,
+    ProactiveModuleDefinition,
+)
+from agent.plugins.generation_proactive_host import (
+    ProactiveModuleContext,
+    ProactiveModuleOutcome,
+)
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -46,7 +53,7 @@ class DayNightGateModule:
         self._start = _parse_hhmm(config.start)
         self._end = _parse_hhmm(config.end)
 
-    async def run(self, frame: ProactiveFrame) -> ProactiveFrame:
+    async def run(self, frame: ProactiveModuleOutcome) -> ProactiveModuleOutcome:
         if not self._config.enabled:
             return frame
         local_now = frame.input.started_at.astimezone(self._zone)
@@ -69,17 +76,42 @@ class DayNightGateModule:
         return frame
 
 
-class DayNightGatePlugin(Plugin):
-    api_version = 2
-    name = "daynight_gate"
-    version = "1.0.0"
-    ConfigModel = DayNightGateConfig
+api_version = 3
+name = "daynight_gate"
+version = "3.0.0"
+Config = DayNightGateConfig
+inject = (PROACTIVE_COMPONENTS,)
+_runtime_module: DayNightGateModule | None = None
 
-    def proactive_modules(self) -> list[object]:
-        config = self.context.config
-        if not isinstance(config, DayNightGateConfig):
-            config = DayNightGateConfig()
-        return [DayNightGateModule(config)]
+
+async def apply(ctx: Context, config: object) -> None:
+    """冻结当前 generation 配置并声明 Day/Night gate module。"""
+
+    if not isinstance(config, DayNightGateConfig):
+        raise TypeError("daynight_gate config 必须是 DayNightGateConfig")
+    global _runtime_module
+    _runtime_module = DayNightGateModule(config)
+    await ctx.require(PROACTIVE_COMPONENTS).register(
+        ctx,
+        ProactiveModuleDefinition(
+            slot=DayNightGateModule.slot,
+            lifecycle_id="default.proactive.frame.v1",
+            produces=DayNightGateModule.produces,
+            handler_export="run_daynight_gate",
+        ),
+    )
+
+
+async def run_daynight_gate(
+    _ctx: ProactiveModuleContext,
+    frame: ProactiveModuleOutcome,
+) -> ProactiveModuleOutcome:
+    """在 exact generation handler 中执行纯内存时间窗判断。"""
+
+    module = _runtime_module
+    if module is None:
+        raise RuntimeError("daynight_gate generation 尚未完成 apply")
+    return await module.run(frame)
 
 
 def _parse_hhmm(value: str) -> time:
